@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-ingress-rule
+  # --- FIX: USE TRAEFIK INGRESS CLASS ---
+  annotations:
+    kubernetes.io/ingress.class: "traefik" # <- Use "traefik" for k3d/k3s
+spec:
+  rules:
+  - host: api.tatsumaki.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fastapi-app-service
+            port:
+              number: 8000

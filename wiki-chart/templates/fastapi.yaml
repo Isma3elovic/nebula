@@ -14,13 +14,12 @@ spec:
     spec:
       containers:
       - name: fastapi-app
-        image: fastapi-app:latest
+        image: fastapi-app:v1.0.3
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8000
         env:
-          # FIX: Changed 'postgresql://' to 'postgresql+asyncpg://' 
-          # to match the asynchronous engine used in your Python code (database.py).
+          # Database URL for reference (Assuming your DB is working)
           - name: DATABASE_URL
             value: "postgresql+asyncpg://admin:admin123@postgres:5432/mydb"
 ---
@@ -29,11 +28,11 @@ kind: Service
 metadata:
   name: fastapi-app-service
 spec:
-  # NodePort is fine for k3d/local testing, allowing external access via port 30001
-  type: NodePort
+  # CORRECTED: Type MUST be ClusterIP when using Ingress
+  type: ClusterIP 
   selector:
     app: fastapi-app
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: 30001
+      # REMOVED: nodePort is illegal for ClusterIP type.
