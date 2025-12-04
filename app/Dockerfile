@@ -1,15 +1,23 @@
-# Use a lightweight base image
-FROM python:3.11-slim
+# Use a suitable base image for running Docker/k3d
+FROM docker:stable-dind 
+# 'dind' stands for Docker-in-Docker and is often a good starting point.
 
-# Set the working directory
-WORKDIR /app
+# Install necessary tools: Helm and k3d
+RUN apk add --no-cache curl bash 
+# Install Helm
+RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+# Install k3d
+RUN wget -q -O /usr/local/bin/k3d https://github.com/k3d-io/k3d/releases/download/v5.6.0/k3d-linux-amd64
+RUN chmod +x /usr/local/bin/k3d
 
+# Copy all project files
+COPY wiki-service /app/wiki-service
+COPY wiki-chart /app/wiki-chart
+COPY start-cluster.sh /usr/local/bin/start-cluster.sh
+RUN chmod +x /usr/local/bin/start-cluster.sh
 
-# Copy the application code
-COPY . .
+# Expose the required port (8080) for external access
+EXPOSE 8080
 
-# Expose the port (FastAPI default is 8000)
-EXPOSE 8000
-
-# Command to run the application (e.g., using uvicorn)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Set the entrypoint to the script
+CMD ["/usr/local/bin/start-cluster.sh"]
