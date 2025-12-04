@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+# ... metadata (include appropriate annotations for your Ingress Controller) ...
+spec:
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      # 1. Route API traffic to FastAPI service
+      - path: /users
+        pathType: Prefix
+        backend:
+          service:
+            name: wiki-service
+            port: { number: 8000 }
+      - path: /posts
+        pathType: Prefix
+        backend:
+          service:
+            name: wiki-service
+            port: { number: 8000 }
+      # 2. Route Grafana dashboard path
+      - path: /grafana/d/creation-dashboard-678/creation
+        pathType: Exact
+        backend:
+          service:
+            name: grafana-service # Name of the Grafana service in your chart
+            port: { number: 80 }

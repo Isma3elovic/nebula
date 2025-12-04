@@ -1,0 +1,20 @@
+# Used to reference the FastAPI image built in Step 1
+fastapiImage:
+  repository: my-wiki-service-image # Name to be used when building locally (Part 2)
+  tag: latest
+
+# PostgreSQL configuration
+postgresql:
+  user: admin
+  password: supersecretpassword
+  database: wiki_db
+
+# Grafana configuration
+grafana:
+  adminUser: admin
+  adminPassword: admin 
+
+# Ingress configuration
+ingress:
+  enabled: true
+  host: my.cluster.local 
