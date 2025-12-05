@@ -1,18 +1,26 @@
+{{- $pvcName := .Values.postgres.pvcName | default "postgres-pvc" -}}
+
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: postgres-pvc
+  name: {{ $pvcName }}
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/managed-by: Helm
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: {{ .Values.postgres.storage | default "1Gi" }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/managed-by: Helm
 spec:
   ports:
     - port: 5432
@@ -23,8 +31,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/managed-by: Helm
 spec:
-  replicas: 1
+  replicas: {{ .Values.postgres.replicas | default 1 }}
   selector:
     matchLabels:
       app: postgres
@@ -34,21 +45,21 @@ spec:
         app: postgres
     spec:
       containers:
-      - name: postgres
-        image: postgres:15
-        env:
-          - name: POSTGRES_USER
-            value: "admin"
-          - name: POSTGRES_PASSWORD
-            value: "admin123"
-          - name: POSTGRES_DB
-            value: "mydb"
-        ports:
-          - containerPort: 5432
-        volumeMounts:
-          - mountPath: /var/lib/postgresql/data
-            name: postgres-storage
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote | default "admin" }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgres.password | quote | default "admin123" }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote | default "mydb" }}
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:
-            claimName: postgres-pvc
+            claimName: {{ $pvcName }}

@@ -2,8 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fastapi-app
+  labels:
+    app.kubernetes.io/name: fastapi-app
+    app.kubernetes.io/managed-by: Helm
 spec:
-  replicas: 1
+  replicas: {{ .Values.fastapi.replicas }}
   selector:
     matchLabels:
       app: fastapi-app
@@ -14,25 +17,30 @@ spec:
     spec:
       containers:
       - name: fastapi-app
-        image: fastapi-app:v1.0.3
+        image: {{ .Values.fastapi.image_name }}
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8000
         env:
-          # Database URL for reference (Assuming your DB is working)
           - name: DATABASE_URL
-            value: "postgresql+asyncpg://admin:admin123@postgres:5432/mydb"
+            value: "postgresql+asyncpg://{{ .Values.postgres.user }}:{{ .Values.postgres.password }}@postgres:5432/{{ .Values.postgres.database }}"
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: fastapi-app-service
+  labels:
+    app.kubernetes.io/name: fastapi-app
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
 spec:
-  # CORRECTED: Type MUST be ClusterIP when using Ingress
-  type: ClusterIP 
+  type: ClusterIP
   selector:
     app: fastapi-app
   ports:
-    - port: 8000
+    - name: http
+      port: 8000
       targetPort: 8000
-      # REMOVED: nodePort is illegal for ClusterIP type.

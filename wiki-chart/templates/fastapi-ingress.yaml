@@ -1,19 +1,25 @@
+{{- if .Values.fastapi.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: fastapi-ingress-rule
-  # --- FIX: USE TRAEFIK INGRESS CLASS ---
+  labels:
+    app.kubernetes.io/name: fastapi
+    app.kubernetes.io/managed-by: Helm
   annotations:
-    kubernetes.io/ingress.class: "traefik" # <- Use "traefik" for k3d/k3s
+    kubernetes.io/ingress.class: "{{ .Values.fastapi.ingress.className }}"
 spec:
   rules:
-  - host: api.tatsumaki.local
+  - host: {{ .Values.fastapi.ingress.host }}
     http:
       paths:
-      - path: /
+      {{- range .Values.fastapi.ingress.paths }}
+      - path: {{ . }}
         pathType: Prefix
         backend:
           service:
             name: fastapi-app-service
             port:
-              number: 8000
+              number: {{ $.Values.fastapi.prometheus_port }}
+      {{- end }}
+{{- end }}

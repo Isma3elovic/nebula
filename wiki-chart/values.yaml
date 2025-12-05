@@ -1,20 +1,38 @@
-# Used to reference the FastAPI image built in Step 1
-fastapiImage:
-  repository: my-wiki-service-image # Name to be used when building locally (Part 2)
-  tag: latest
+fastapi:
+  image_name: fastapi-app:v1.0.3
+  replicas: 1
+  prometheus_scrape: true
+  prometheus_port: 8000
+  prometheus_path: /metrics
+  ingress:
+    enabled: true
+    host: api.tatsumaki.local
+    className: traefik
+    paths:
+      - /users
+      - /posts
 
-# PostgreSQL configuration
-postgresql:
-  user: admin
-  password: supersecretpassword
-  database: wiki_db
+postgres:
+  pvcName: postgres-pvc
+  storage: 1Gi
+  replicas: 1
+  user: postgres
+  password: postgres
+  database: wiki
 
-# Grafana configuration
 grafana:
-  adminUser: admin
-  adminPassword: admin 
+  admin_user: admin
+  admin_password: admin
+  namespace: default
+  serviceName: grafana
+  servicePort: 3000
+  ingress:
+    enabled: true
+    host: grafana.tatsumaki.local
+    className: traefik
+    paths:
+      - /grafana/d/creation-dashboard-678/creation
+      - /grafana
 
-# Ingress configuration
-ingress:
-  enabled: true
-  host: my.cluster.local 
+prometheus:
+  scrape_interval: 15s   # must be present
